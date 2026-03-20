@@ -1,10 +1,16 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using System.IO;
 using System.Windows;
+using WpfBrowserWorker.Api;
 using WpfBrowserWorker.Browser;
 using WpfBrowserWorker.Browser.Actions;
+using WpfBrowserWorker.Data;
 using WpfBrowserWorker.Helpers;
 using WpfBrowserWorker.Models;
 using WpfBrowserWorker.Services;
@@ -14,7 +20,8 @@ namespace WpfBrowserWorker;
 
 public partial class App : Application
 {
-    public static IServiceProvider Services { get; private set; } = null!;
+    private WebApplication? _webApp;
+    private CancellationTokenSource? _apiCts;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -23,16 +30,23 @@ public partial class App : Application
         var config = LoadConfig();
         ConfigureSerilog(config);
 
-        var services = new ServiceCollection();
-        RegisterServices(services, config);
-        Services = services.BuildServiceProvider();
+        _webApp = BuildWebApp(config);
 
-        var mainWindow = Services.GetRequiredService<MainWindow>();
+        // Запускаем Kestrel в фоне — не блокирует UI
+        _apiCts = new CancellationTokenSource();
+        _webApp.Urls.Add($"http://0.0.0.0:{config.ApiPort}");
+        Task.Run(() => _webApp.RunAsync(_apiCts.Token));
+
+        Log.Information("Kestrel started on port {Port}", config.ApiPort);
+
+        var mainWindow = _webApp.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
+        _apiCts?.Cancel();
+        _webApp?.StopAsync(TimeSpan.FromSeconds(3)).Wait();
         Log.CloseAndFlush();
         base.OnExit(e);
     }
@@ -46,12 +60,8 @@ public partial class App : Application
 
         var config = configuration.GetSection("Worker").Get<WorkerConfig>() ?? new WorkerConfig();
 
-        // Generate WorkerId on first run
         if (string.IsNullOrEmpty(config.WorkerId))
-        {
             config.WorkerId = $"worker-{Environment.MachineName.ToLower()}-{Guid.NewGuid().ToString()[..8]}";
-            // TODO: persist back to appsettings.json
-        }
 
         return config;
     }
@@ -61,58 +71,79 @@ public partial class App : Application
         Directory.CreateDirectory("logs");
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Is(Enum.Parse<Serilog.Events.LogEventLevel>(config.LogLevel))
-            .WriteTo.File("logs/worker-.log", rollingInterval: Serilog.RollingInterval.Day,
+            .WriteTo.File("logs/worker-.log",
+                rollingInterval: Serilog.RollingInterval.Day,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
     }
 
-    private static void RegisterServices(IServiceCollection services, WorkerConfig config)
+    private static WebApplication BuildWebApp(WorkerConfig config)
     {
-        // Config
-        services.AddSingleton(config);
+        var builder = WebApplication.CreateBuilder();
 
-        // HTTP
-        services.AddHttpClient<IApiClient, ApiClient>(client =>
-        {
-            client.BaseAddress = new Uri(config.BackendUrl.TrimEnd('/'));
-            client.Timeout = TimeSpan.FromSeconds(30);
-            client.DefaultRequestHeaders.Add("X-Worker-Key", config.ApiKey);
-        });
+        // Подавляем лишние логи ASP.NET Core в консоль
+        builder.Logging.ClearProviders();
+        builder.Logging.AddSerilog();
+
+        // ── Services ─────────────────────────────────────────────
+
+        builder.Services.AddSingleton(config);
+
+        // SQLite
+        builder.Services.AddDbContext<WorkerDbContext>(opt =>
+            opt.UseSqlite($"Data Source={config.DatabasePath}"));
 
         // Core services
-        services.AddSingleton<WorkerStateService>();
-        services.AddSingleton<IBrowserManager, BrowserManager>();
-        services.AddSingleton<HumanBehaviorSimulator>();
-        services.AddSingleton<FingerprintGenerator>();
-        services.AddSingleton<RetryPolicy>();
+        builder.Services.AddSingleton<WorkerStateService>();
+        builder.Services.AddSingleton<TaskQueue>();
+        builder.Services.AddSingleton<IBrowserManager, BrowserManager>();
+        builder.Services.AddSingleton<HumanBehaviorSimulator>();
+        builder.Services.AddSingleton<FingerprintGenerator>();
+        builder.Services.AddSingleton<RetryPolicy>();
 
         // Actions
-        services.AddTransient<IAction, LikeAction>();
-        services.AddTransient<IAction, CommentAction>();
-        services.AddTransient<IAction, FollowAction>();
-        services.AddTransient<IAction, UnfollowAction>();
-        services.AddTransient<IAction, ViewStoryAction>();
-        services.AddTransient<IAction, ScrollFeedAction>();
-        services.AddTransient<IAction, AnalyzeProfileAction>();
-        services.AddTransient<IAction, ScreenshotAction>();
-        services.AddTransient<IAction, DirectMessageAction>();
-        services.AddTransient<IAction, CustomSelectorAction>();
+        builder.Services.AddTransient<IAction, LikeAction>();
+        builder.Services.AddTransient<IAction, CommentAction>();
+        builder.Services.AddTransient<IAction, FollowAction>();
+        builder.Services.AddTransient<IAction, UnfollowAction>();
+        builder.Services.AddTransient<IAction, ViewStoryAction>();
+        builder.Services.AddTransient<IAction, ScrollFeedAction>();
+        builder.Services.AddTransient<IAction, AnalyzeProfileAction>();
+        builder.Services.AddTransient<IAction, ScreenshotAction>();
+        builder.Services.AddTransient<IAction, DirectMessageAction>();
+        builder.Services.AddTransient<IAction, CustomSelectorAction>();
 
         // Worker orchestration
-        services.AddSingleton<TaskExecutor>();
-        services.AddSingleton<TaskPoller>();
-        services.AddSingleton<HeartbeatService>();
-        services.AddSingleton<TaskTimeoutWatcher>();
+        builder.Services.AddSingleton<TaskExecutor>();
+        builder.Services.AddSingleton<TaskDispatcher>();
+        builder.Services.AddSingleton<TaskTimeoutWatcher>();
+
+        // API key filter
+        builder.Services.AddTransient<ApiKeyFilter>();
 
         // ViewModels
-        services.AddTransient<MainViewModel>();
-        services.AddTransient<DashboardViewModel>();
-        services.AddTransient<TaskListViewModel>();
-        services.AddTransient<AccountsViewModel>();
-        services.AddTransient<LogsViewModel>();
-        services.AddTransient<SettingsViewModel>();
+        builder.Services.AddTransient<MainViewModel>();
+        builder.Services.AddTransient<DashboardViewModel>();
+        builder.Services.AddTransient<TaskListViewModel>();
+        builder.Services.AddTransient<AccountsViewModel>();
+        builder.Services.AddTransient<LogsViewModel>();
+        builder.Services.AddTransient<SettingsViewModel>();
 
-        // Main window
-        services.AddSingleton<MainWindow>();
+        builder.Services.AddSingleton<MainWindow>();
+
+        // ── Build ─────────────────────────────────────────────────
+
+        var app = builder.Build();
+
+        // Migrate / create DB on startup
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<WorkerDbContext>();
+            db.Database.EnsureCreated();
+        }
+
+        app.MapWorkerEndpoints();
+
+        return app;
     }
 }

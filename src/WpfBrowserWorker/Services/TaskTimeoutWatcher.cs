@@ -1,19 +1,20 @@
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using WpfBrowserWorker.Models;
+using WpfBrowserWorker.Data;
 
 namespace WpfBrowserWorker.Services;
 
 public class TaskTimeoutWatcher
 {
     private readonly WorkerStateService _state;
-    private readonly IApiClient _apiClient;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly TimeSpan _timeout = TimeSpan.FromMinutes(5);
     private Timer? _timer;
 
-    public TaskTimeoutWatcher(WorkerStateService state, IApiClient apiClient)
+    public TaskTimeoutWatcher(WorkerStateService state, IServiceScopeFactory scopeFactory)
     {
         _state = state;
-        _apiClient = apiClient;
+        _scopeFactory = scopeFactory;
     }
 
     public void Start() =>
@@ -28,14 +29,21 @@ public class TaskTimeoutWatcher
         {
             if (task.Age <= _timeout) continue;
 
-            Log.Warning("Task {TaskId} has been running for {Age} — marking as timed out", taskId, task.Age);
+            Log.Warning("Task {TaskId} timed out after {Age}", taskId, task.Age);
             _state.UntrackTask(taskId);
 
-            await _apiClient.UpdateTaskStatusAsync(taskId, new TaskStatusUpdate
-            {
-                Status = "failed",
-                Error = $"Local timeout after {_timeout.TotalMinutes} minutes"
-            });
+            if (!int.TryParse(taskId, out var id)) continue;
+
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<WorkerDbContext>();
+
+            var entity = await db.Tasks.FindAsync(id);
+            if (entity is null) continue;
+
+            entity.Status = "failed";
+            entity.ErrorMessage = $"Timeout after {_timeout.TotalMinutes} minutes";
+            entity.CompletedAt = DateTime.UtcNow;
+            await db.SaveChangesAsync();
         }
     }
 }

@@ -13,13 +13,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- ASP.NET Core (Kestrel embedded) -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+
     <!-- MVVM -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
-
-    <!-- DI + Hosting -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
 
     <!-- Logging -->
     <PackageReference Include="Serilog" Version="4.1.0" />
@@ -31,11 +29,11 @@
     <PackageReference Include="Selenium.Support" Version="4.27.0" />
     <PackageReference Include="WebDriverManager" Version="2.17.4" />
 
-    <!-- JSON -->
-    <PackageReference Include="System.Text.Json" Version="8.0.5" />
-
-    <!-- HTTP -->
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <!-- EF Core + SQLite -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

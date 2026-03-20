@@ -1,59 +1,56 @@
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WpfBrowserWorker.Models;
-using WpfBrowserWorker.Services;
 
 namespace WpfBrowserWorker.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
-    private readonly IApiClient _apiClient;
-
-    [ObservableProperty] private string _backendUrl = string.Empty;
-    [ObservableProperty] private string _apiKey = string.Empty;
     [ObservableProperty] private string _workerId = string.Empty;
-    [ObservableProperty] private int _pollIntervalMs;
+    [ObservableProperty] private int _apiPort;
+    [ObservableProperty] private string _apiKey = string.Empty;
     [ObservableProperty] private int _maxBrowsers;
     [ObservableProperty] private string _chromiumPath = string.Empty;
     [ObservableProperty] private string _screenshotsPath = string.Empty;
+    [ObservableProperty] private string _databasePath = string.Empty;
     [ObservableProperty] private bool _humanMode;
     [ObservableProperty] private bool _autoStart;
     [ObservableProperty] private string _testResult = string.Empty;
     [ObservableProperty] private bool _isTesting;
 
-    public SettingsViewModel(WorkerConfig config, IApiClient apiClient)
+    public SettingsViewModel(WorkerConfig config)
     {
-        _apiClient = apiClient;
         LoadFrom(config);
     }
 
     private void LoadFrom(WorkerConfig config)
     {
-        BackendUrl = config.BackendUrl;
-        ApiKey = config.ApiKey;
         WorkerId = config.WorkerId;
-        PollIntervalMs = config.PollIntervalMs;
+        ApiPort = config.ApiPort;
+        ApiKey = config.ApiKey;
         MaxBrowsers = config.MaxBrowsers;
         ChromiumPath = config.ChromiumPath ?? string.Empty;
         ScreenshotsPath = config.ScreenshotsPath;
+        DatabasePath = config.DatabasePath;
         HumanMode = config.HumanMode;
         AutoStart = config.AutoStart;
     }
 
-    [RelayCommand(CanExecute = nameof(CanSave))]
+    [RelayCommand]
     private void Save()
     {
         var config = new WorkerConfig
         {
-            BackendUrl = BackendUrl,
-            ApiKey = ApiKey,
             WorkerId = WorkerId,
-            PollIntervalMs = PollIntervalMs,
+            ApiPort = ApiPort,
+            ApiKey = ApiKey,
             MaxBrowsers = MaxBrowsers,
             ChromiumPath = string.IsNullOrEmpty(ChromiumPath) ? null : ChromiumPath,
             ScreenshotsPath = ScreenshotsPath,
+            DatabasePath = DatabasePath,
             HumanMode = HumanMode,
             AutoStart = AutoStart
         };
@@ -63,25 +60,23 @@ public partial class SettingsViewModel : ObservableObject
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
-        File.WriteAllText("appsettings.json", json);
-        TestResult = "Settings saved.";
+        File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "appsettings.json"), json);
+        TestResult = "Saved. Restart to apply changes.";
     }
 
     [RelayCommand]
-    private async Task TestConnectionAsync()
+    private async Task TestApiAsync()
     {
         IsTesting = true;
-        TestResult = "Testing...";
+        TestResult = "Checking...";
         try
         {
-            var heartbeat = new Models.HeartbeatRequest
-            {
-                WorkerId = WorkerId,
-                Version = "1.0.0",
-                Hostname = Environment.MachineName
-            };
-            var result = await _apiClient.SendHeartbeatAsync(heartbeat);
-            TestResult = result.Status == "ok" ? "Connected!" : $"Unexpected response: {result.Status}";
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            if (!string.IsNullOrEmpty(ApiKey))
+                http.DefaultRequestHeaders.Add("X-Api-Key", ApiKey);
+
+            var resp = await http.GetStringAsync($"http://localhost:{ApiPort}/api/status");
+            TestResult = $"API OK — {resp[..Math.Min(80, resp.Length)]}";
         }
         catch (Exception ex)
         {
@@ -92,9 +87,4 @@ public partial class SettingsViewModel : ObservableObject
             IsTesting = false;
         }
     }
-
-    private bool CanSave() =>
-        !string.IsNullOrWhiteSpace(BackendUrl) &&
-        !string.IsNullOrWhiteSpace(ApiKey) &&
-        ApiKey.StartsWith("wk_");
 }

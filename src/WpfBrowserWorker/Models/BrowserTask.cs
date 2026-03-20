@@ -1,13 +1,11 @@
-using System.Text.Json.Serialization;
-
 namespace WpfBrowserWorker.Models;
 
 public class BrowserTask
 {
-    public string Id { get; set; } = string.Empty;
+    public int Id { get; set; }
     public string TaskType { get; set; } = string.Empty;
     public string Platform { get; set; } = string.Empty;
-    public string AccountId { get; set; } = string.Empty;
+    public int? AccountId { get; set; }
     public int Priority { get; set; }
     public TaskTarget Target { get; set; } = new();
     public TaskConfig Config { get; set; } = new();
