@@ -1,0 +1,31 @@
+<Application x:Class="WpfBrowserWorker.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:WpfBrowserWorker.ViewModels"
+             xmlns:views="clr-namespace:WpfBrowserWorker.Views"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- ViewModel → View mapping -->
+            <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+                <views:DashboardView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:TaskListViewModel}">
+                <views:TaskListView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:AccountsViewModel}">
+                <views:AccountsView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:LogsViewModel}">
+                <views:LogsView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+                <views:SettingsView/>
+            </DataTemplate>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
