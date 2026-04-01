@@ -12,6 +12,7 @@ public class BrowserInstance : IAsyncDisposable
     private IWebDriver? _driver;
     private readonly WorkerConfig _config;
     private readonly FingerprintGenerator _fingerprint;
+    private HttpConnectRelay? _proxyRelay;
     private bool _isIdle = true;
     private DateTime _lastUsedAt = DateTime.UtcNow;
 
@@ -28,15 +29,14 @@ public class BrowserInstance : IAsyncDisposable
         _fingerprint = fingerprint;
     }
 
-    public async Task InitializeAsync(WorkerAccount account)
+    public async Task InitializeAsync(WorkerAccount account, string profilePath)
     {
         Username = account.Username;
         Platform = account.Platform;
 
         var options = BuildChromeOptions(account);
-        var profileDir = Path.Combine("profiles", account.Id);
-        Directory.CreateDirectory(profileDir);
-        options.AddArgument($"--user-data-dir={Path.GetFullPath(profileDir)}");
+        Directory.CreateDirectory(profilePath);
+        options.AddArgument($"--user-data-dir={Path.GetFullPath(profilePath)}");
 
         // Auto-download matching chromedriver
         var driverPath = string.IsNullOrEmpty(_config.ChromiumPath)
@@ -153,12 +153,29 @@ public class BrowserInstance : IAsyncDisposable
         // Proxy
         if (account.Proxy != null)
         {
-            var proxy = new Proxy { Kind = ProxyKind.Manual };
-            if (account.Proxy.Type == "socks5")
-                proxy.SocksProxy = $"{account.Proxy.Host}:{account.Proxy.Port}";
+            if (account.Proxy.Type == "socks5" && account.Proxy.Username is not null)
+            {
+                // Chrome cannot authenticate to SOCKS5 via --proxy-server.
+                // Use a local HTTP CONNECT relay that handles the auth internally.
+                _proxyRelay = new HttpConnectRelay(
+                    account.Proxy.Host, account.Proxy.Port,
+                    account.Proxy.Username, account.Proxy.Password);
+                options.AddArgument($"--proxy-server=http://127.0.0.1:{_proxyRelay.LocalPort}");
+            }
             else
-                proxy.HttpProxy = $"{account.Proxy.Host}:{account.Proxy.Port}";
-            options.Proxy = proxy;
+            {
+                var proxy = new Proxy { Kind = ProxyKind.Manual };
+                if (account.Proxy.Type == "socks5")
+                {
+                    proxy.SocksProxy  = $"{account.Proxy.Host}:{account.Proxy.Port}";
+                    proxy.SocksVersion = 5;
+                }
+                else
+                {
+                    proxy.HttpProxy = $"{account.Proxy.Host}:{account.Proxy.Port}";
+                }
+                options.Proxy = proxy;
+            }
         }
 
         // Stability
@@ -177,6 +194,8 @@ public class BrowserInstance : IAsyncDisposable
         try { _driver?.Quit(); } catch { }
         try { _driver?.Dispose(); } catch { }
         _driver = null;
+        _proxyRelay?.Dispose();
+        _proxyRelay = null;
         await Task.CompletedTask;
     }
 }

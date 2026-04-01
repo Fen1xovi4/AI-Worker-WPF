@@ -9,7 +9,7 @@
     <AssemblyName>WpfBrowserWorker</AssemblyName>
     <RootNamespace>WpfBrowserWorker</RootNamespace>
     <Version>1.0.0</Version>
-    <!-- <ApplicationIcon>Resources\icon.ico</ApplicationIcon> -->
+    <ApplicationIcon>Resources\app.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +27,8 @@
     <!-- Browser Automation -->
     <PackageReference Include="Selenium.WebDriver" Version="4.27.0" />
     <PackageReference Include="Selenium.Support" Version="4.27.0" />
+    <PackageReference Include="System.Management" Version="10.0.5" />
+    <PackageReference Include="Telegram.Bot" Version="21.*" />
     <PackageReference Include="WebDriverManager" Version="2.17.4" />
 
     <!-- EF Core + SQLite -->

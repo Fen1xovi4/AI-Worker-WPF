@@ -21,9 +21,30 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _testResult = string.Empty;
     [ObservableProperty] private bool _isTesting;
 
-    public SettingsViewModel(WorkerConfig config)
+    // ── AI settings ────────────────────────────────────────────────────────
+    [ObservableProperty] private string _aiProvider    = "openai";
+    [ObservableProperty] private string _openAiKey     = string.Empty;
+    [ObservableProperty] private string _openAiModel   = "gpt-4o-mini";
+    [ObservableProperty] private string _deepSeekKey   = string.Empty;
+    [ObservableProperty] private string _deepSeekModel = "deepseek-chat";
+
+    public ProfilesViewModel ProfilesVm { get; }
+
+    public SettingsViewModel(WorkerConfig config, AiConfig aiConfig, ProfilesViewModel profilesVm)
     {
+        ProfilesVm = profilesVm;
         LoadFrom(config);
+        LoadAi(aiConfig);
+        _ = profilesVm.LoadAsync();
+    }
+
+    private void LoadAi(AiConfig ai)
+    {
+        AiProvider    = ai.Provider;
+        OpenAiKey     = ai.OpenAiKey;
+        OpenAiModel   = ai.OpenAiModel;
+        DeepSeekKey   = ai.DeepSeekKey;
+        DeepSeekModel = ai.DeepSeekModel;
     }
 
     private void LoadFrom(WorkerConfig config)
@@ -44,23 +65,31 @@ public partial class SettingsViewModel : ObservableObject
     {
         var config = new WorkerConfig
         {
-            WorkerId = WorkerId,
-            ApiPort = ApiPort,
-            ApiKey = ApiKey,
-            MaxBrowsers = MaxBrowsers,
-            ChromiumPath = string.IsNullOrEmpty(ChromiumPath) ? null : ChromiumPath,
+            WorkerId        = WorkerId,
+            ApiPort         = ApiPort,
+            ApiKey          = ApiKey,
+            MaxBrowsers     = MaxBrowsers,
+            ChromiumPath    = string.IsNullOrEmpty(ChromiumPath) ? null : ChromiumPath,
             ScreenshotsPath = ScreenshotsPath,
-            DatabasePath = DatabasePath,
-            HumanMode = HumanMode,
-            AutoStart = AutoStart
+            DatabasePath    = DatabasePath,
+            HumanMode       = HumanMode,
+            AutoStart       = AutoStart
         };
 
-        var json = JsonSerializer.Serialize(new { Worker = config }, new JsonSerializerOptions
+        var ai = new AiConfig
         {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
+            Provider      = AiProvider,
+            OpenAiKey     = OpenAiKey,
+            OpenAiModel   = OpenAiModel,
+            DeepSeekKey   = DeepSeekKey,
+            DeepSeekModel = DeepSeekModel
+        };
+
+        var opts = new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+        var json = JsonSerializer.Serialize(new { Worker = config, Ai = ai }, opts);
         File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "appsettings.json"), json);
+
         TestResult = "Saved. Restart to apply changes.";
     }
 

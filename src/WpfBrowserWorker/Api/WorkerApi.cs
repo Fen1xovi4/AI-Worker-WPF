@@ -147,6 +147,51 @@ public static class WorkerApi
             await db.SaveChangesAsync();
             return Results.Ok(new { ok = true });
         });
+
+        // ── Profiles ─────────────────────────────────────────────
+
+        api.MapGet("/profiles", async (WorkerDbContext db) =>
+        {
+            var items = await db.Profiles.AsNoTracking().OrderBy(p => p.Name).ToListAsync();
+            return Results.Ok(items.Select(p => p.ToResponse()));
+        });
+
+        api.MapGet("/profiles/{id:int}", async (int id, WorkerDbContext db) =>
+        {
+            var p = await db.Profiles.FindAsync(id);
+            return p is null ? Results.NotFound() : Results.Ok(p.ToResponse());
+        });
+
+        api.MapPost("/profiles", async ([FromBody] CreateProfileRequest req, ProfileService profileService) =>
+        {
+            try
+            {
+                var profile = await profileService.CreateProfileAsync(req.Name, req.Proxy, req.Notes);
+                return Results.Ok(profile.ToResponse());
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+        });
+
+        api.MapPut("/profiles/{id:int}", async (int id, [FromBody] UpdateProfileRequest req, WorkerDbContext db) =>
+        {
+            var entity = await db.Profiles.FindAsync(id);
+            if (entity is null) return Results.NotFound();
+            if (req.Status is not null) entity.Status = req.Status;
+            if (req.Proxy is not null) entity.Proxy = req.Proxy;
+            if (req.Notes is not null) entity.Notes = req.Notes;
+            if (req.LinkedAccountId.HasValue) entity.LinkedAccountId = req.LinkedAccountId;
+            await db.SaveChangesAsync();
+            return Results.Ok(entity.ToResponse());
+        });
+
+        api.MapDelete("/profiles/{id:int}", async (int id, ProfileService profileService) =>
+        {
+            await profileService.DeleteAsync(id);
+            return Results.Ok(new { ok = true });
+        });
     }
 }
 
@@ -165,6 +210,10 @@ public record UpsertAccountRequest(
     string? CookiesJson,
     string? FingerprintJson,
     string? Notes);
+
+public record CreateProfileRequest(string Name, string? Proxy, string? Notes);
+
+public record UpdateProfileRequest(string? Status, string? Proxy, string? Notes, int? LinkedAccountId);
 
 // ── Mapping helpers ───────────────────────────────────────────────────────────
 
@@ -242,5 +291,18 @@ file static class Mappings
         a.Notes,
         a.LastUsedAt,
         a.CreatedAt
+    };
+
+    public static object ToResponse(this BrowserProfile p) => new
+    {
+        p.Id,
+        p.Name,
+        p.ProfilePath,
+        p.Proxy,
+        p.Status,
+        p.LinkedAccountId,
+        p.Notes,
+        p.CreatedAt,
+        p.LastUsedAt
     };
 }

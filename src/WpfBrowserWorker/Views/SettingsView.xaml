@@ -82,6 +82,143 @@
                 </StackPanel>
             </Border>
 
+            <!-- AI Settings -->
+            <Border Background="{StaticResource ColorSurface}" CornerRadius="6"
+                    BorderBrush="{StaticResource ColorBorder}" BorderThickness="1"
+                    Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="AI Content Generation" FontSize="13" FontWeight="SemiBold"
+                               FontFamily="Segoe UI" Foreground="{StaticResource ColorPrimary}"
+                               Margin="0,0,0,16"/>
+
+                    <TextBlock Text="Provider" FontSize="12" FontFamily="Segoe UI"
+                               Foreground="{StaticResource ColorTextSecondary}" Margin="0,0,0,5"/>
+                    <ComboBox SelectedValue="{Binding AiProvider}" Margin="0,0,0,14">
+                        <ComboBoxItem Content="openai"   Tag="openai"/>
+                        <ComboBoxItem Content="deepseek" Tag="deepseek"/>
+                    </ComboBox>
+
+                    <!-- OpenAI -->
+                    <TextBlock Text="OpenAI API Key" FontSize="12" FontFamily="Segoe UI"
+                               Foreground="{StaticResource ColorTextSecondary}" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding OpenAiKey, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,10"/>
+
+                    <TextBlock Text="OpenAI Model" FontSize="12" FontFamily="Segoe UI"
+                               Foreground="{StaticResource ColorTextSecondary}" Margin="0,0,0,5"/>
+                    <ComboBox Text="{Binding OpenAiModel, UpdateSourceTrigger=PropertyChanged}"
+                              IsEditable="True" Margin="0,0,0,14">
+                        <ComboBoxItem Content="gpt-4o-mini"/>
+                        <ComboBoxItem Content="gpt-4o"/>
+                        <ComboBoxItem Content="gpt-4-turbo"/>
+                    </ComboBox>
+
+                    <!-- DeepSeek -->
+                    <TextBlock Text="DeepSeek API Key" FontSize="12" FontFamily="Segoe UI"
+                               Foreground="{StaticResource ColorTextSecondary}" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding DeepSeekKey, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,10"/>
+
+                    <TextBlock Text="DeepSeek Model" FontSize="12" FontFamily="Segoe UI"
+                               Foreground="{StaticResource ColorTextSecondary}" Margin="0,0,0,5"/>
+                    <ComboBox Text="{Binding DeepSeekModel, UpdateSourceTrigger=PropertyChanged}"
+                              IsEditable="True">
+                        <ComboBoxItem Content="deepseek-chat"/>
+                        <ComboBoxItem Content="deepseek-reasoner"/>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Browser Profiles -->
+            <Border Background="{StaticResource ColorSurface}" CornerRadius="6"
+                    BorderBrush="{StaticResource ColorBorder}" BorderThickness="1"
+                    Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Browser Profiles" FontSize="13" FontWeight="SemiBold"
+                               FontFamily="Segoe UI" Foreground="{StaticResource ColorPrimary}"
+                               Margin="0,0,0,16"/>
+
+                    <!-- Create new profile -->
+                    <TextBlock Text="Profile Name" FontSize="12" FontFamily="Segoe UI"
+                               Foreground="{StaticResource ColorTextSecondary}" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding ProfilesVm.NewProfileName, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Proxy (host:port or host:port:user:pass — optional)" FontSize="12"
+                               FontFamily="Segoe UI"
+                               Foreground="{StaticResource ColorTextSecondary}" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding ProfilesVm.NewProfileProxy, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,10"/>
+
+                    <Button Style="{StaticResource PrimaryButton}" Content="Create Profile"
+                            Command="{Binding ProfilesVm.CreateProfileCommand}"
+                            HorizontalAlignment="Left" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="{Binding ProfilesVm.StatusMessage}" FontSize="11" FontFamily="Segoe UI"
+                               Foreground="{StaticResource ColorTextSecondary}" Margin="0,0,0,10"
+                               TextWrapping="Wrap"/>
+
+                    <!-- Profiles list -->
+                    <Border Background="{StaticResource ColorSurfaceLow}" CornerRadius="4"
+                            BorderBrush="{StaticResource ColorBorder}" BorderThickness="1"
+                            MaxHeight="180">
+                        <ListView ItemsSource="{Binding ProfilesVm.Profiles}"
+                                  SelectedItem="{Binding ProfilesVm.SelectedProfile}"
+                                  BorderThickness="0" Background="Transparent">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Name" Width="150"
+                                                    DisplayMemberBinding="{Binding Name}"/>
+                                    <GridViewColumn Header="Status" Width="70"
+                                                    DisplayMemberBinding="{Binding Status}"/>
+                                    <GridViewColumn Header="Linked Account" Width="110"
+                                                    DisplayMemberBinding="{Binding LinkedAccountId}"/>
+                                    <GridViewColumn Header="Last Used" Width="130"
+                                                    DisplayMemberBinding="{Binding LastUsedAt}"/>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0" FlowDirection="LeftToRight">
+                        <Button Style="{StaticResource PrimaryButton}" Content="Test Launch"
+                                Command="{Binding ProfilesVm.TestLaunchCommand}"
+                                CommandParameter="{Binding ProfilesVm.SelectedProfile}"
+                                Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Test Proxy"
+                                Command="{Binding ProfilesVm.TestProxyCommand}"
+                                CommandParameter="{Binding ProfilesVm.SelectedProfile}"
+                                Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource SecondaryButton}" Content="Open Folder"
+                                Command="{Binding ProfilesVm.OpenProfileFolderCommand}"
+                                CommandParameter="{Binding ProfilesVm.SelectedProfile}"
+                                Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource SecondaryButton}" Content="Delete"
+                                Command="{Binding ProfilesVm.DeleteProfileCommand}"
+                                CommandParameter="{Binding ProfilesVm.SelectedProfile}"
+                                Margin="0,0,8,0"/>
+                        <Button Command="{Binding ProfilesVm.ToggleProxyCommand}"
+                                CommandParameter="{Binding ProfilesVm.SelectedProfile}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+                                    <Setter Property="Content" Value="Disable Proxy"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ProfilesVm.SelectedProfile.ProxyEnabled}" Value="False">
+                                            <Setter Property="Content" Value="Enable Proxy"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding ProfilesVm.StatusMessage}" FontSize="11"
+                               FontFamily="Segoe UI" Foreground="{StaticResource ColorTextSecondary}"
+                               TextWrapping="Wrap" Margin="0,6,0,0"/>
+
+                </StackPanel>
+            </Border>
+
             <!-- Actions -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                 <Button Style="{StaticResource PrimaryButton}" Content="Save Settings"

@@ -16,6 +16,9 @@ public class StoredAccount
     [MaxLength(32)]
     public string Status { get; set; } = "active";
 
+    // Which Chrome profile to use for this account
+    public int? LinkedProfileId { get; set; }
+
     // format: host:port:user:pass  or  host:port
     [MaxLength(512)]
     public string? Proxy { get; set; }

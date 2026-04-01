@@ -55,11 +55,18 @@ public partial class MainViewModel : ObservableObject
         {
             "Dashboard" => _services.GetRequiredService<DashboardViewModel>(),
             "Tasks"     => _services.GetRequiredService<TaskListViewModel>(),
-            "Accounts"  => _services.GetRequiredService<AccountsViewModel>(),
+            "Accounts"  => NavigateAccounts(),
             "Logs"      => _services.GetRequiredService<LogsViewModel>(),
             "Settings"  => _services.GetRequiredService<SettingsViewModel>(),
             _           => CurrentView
         };
+    }
+
+    private AccountsViewModel NavigateAccounts()
+    {
+        var vm = _services.GetRequiredService<AccountsViewModel>();
+        _ = vm.LoadAsync();
+        return vm;
     }
 
     [RelayCommand(CanExecute = nameof(CanStart))]
