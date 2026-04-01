@@ -339,6 +339,105 @@
     </Style>
 
     <!-- ═══════════════════════════════════════════════ -->
+    <!--  COMBO BOX                                      -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <Style TargetType="ComboBox">
+        <Setter Property="Background"   Value="#1D2026"/>
+        <Setter Property="Foreground"   Value="#ABB2BF"/>
+        <Setter Property="BorderBrush"  Value="#3E4451"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontSize"     Value="13"/>
+        <Setter Property="FontFamily"   Value="Segoe UI"/>
+        <Setter Property="Cursor"       Value="Hand"/>
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ComboBoxItem">
+                    <Setter Property="Foreground"  Value="#ABB2BF"/>
+                    <Setter Property="Background"  Value="Transparent"/>
+                    <Setter Property="Padding"     Value="10,7"/>
+                    <Setter Property="FontSize"    Value="13"/>
+                    <Setter Property="FontFamily"  Value="Segoe UI"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ComboBoxItem">
+                                <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                        Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="#3E4451"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="#3E4451"/>
+                                        <Setter Property="Foreground" Value="#61AFEF"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="26"/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter x:Name="ContentSite" Grid.Column="0"
+                                              Margin="10,7,0,7" VerticalAlignment="Center"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              IsHitTestVisible="False"/>
+                            <TextBlock Grid.Column="1" Text="▾" Foreground="#636D83"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                                       FontSize="11" IsHitTestVisible="False"/>
+                            <!-- Transparent toggle covers entire control -->
+                            <ToggleButton Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0"
+                                          Focusable="False"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent"/>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Popup x:Name="PART_Popup" Grid.ColumnSpan="2"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom" AllowsTransparency="True" Focusable="False">
+                                <Border Background="#2C313C" BorderBrush="#3E4451" BorderThickness="1"
+                                        CornerRadius="0,0,4,4"
+                                        MinWidth="{TemplateBinding ActualWidth}" MaxHeight="240">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#61AFEF"/>
+                        </Trigger>
+                        <Trigger Property="IsDropDownOpen" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#61AFEF"/>
+                            <Setter TargetName="Bd" Property="CornerRadius" Value="4,4,0,0"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════ -->
     <!--  SCROLL BAR  (minimal)                          -->
     <!-- ═══════════════════════════════════════════════ -->
     <Style TargetType="ScrollBar">

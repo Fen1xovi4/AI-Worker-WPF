@@ -2,36 +2,444 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="{StaticResource ColorBackground}">
+
+    <UserControl.Resources>
+        <!-- Tab RadioButton -->
+        <Style x:Key="TabRadio" TargetType="RadioButton">
+            <Setter Property="Background"       Value="Transparent"/>
+            <Setter Property="Foreground"       Value="#636D83"/>
+            <Setter Property="BorderThickness"  Value="0,0,0,2"/>
+            <Setter Property="BorderBrush"      Value="Transparent"/>
+            <Setter Property="Padding"          Value="14,10"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <Setter Property="FontFamily"       Value="Segoe UI"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="Transparent"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#61AFEF"/>
+                                <Setter Property="Foreground" Value="#ABB2BF"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="#9CA3AF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Small icon button in table rows -->
+        <Style x:Key="RowBtn" TargetType="Button">
+            <Setter Property="Background"    Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground"    Value="#636D83"/>
+            <Setter Property="Padding"       Value="7,4"/>
+            <Setter Property="FontSize"      Value="13"/>
+            <Setter Property="Cursor"        Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#3E4451"/>
+                                <Setter Property="Foreground" Value="#ABB2BF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Section label -->
+        <Style x:Key="ColHeader" TargetType="TextBlock">
+            <Setter Property="Foreground"   Value="#636D83"/>
+            <Setter Property="FontSize"     Value="11"/>
+            <Setter Property="FontWeight"   Value="SemiBold"/>
+            <Setter Property="FontFamily"   Value="Segoe UI"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Row text -->
+        <Style x:Key="RowText" TargetType="TextBlock">
+            <Setter Property="Foreground"        Value="#ABB2BF"/>
+            <Setter Property="FontSize"          Value="13"/>
+            <Setter Property="FontFamily"        Value="Segoe UI"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Dim row text (secondary) -->
+        <Style x:Key="RowTextDim" TargetType="TextBlock">
+            <Setter Property="Foreground"        Value="#636D83"/>
+            <Setter Property="FontSize"          Value="13"/>
+            <Setter Property="FontFamily"        Value="Segoe UI"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Margin="24">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>   <!-- title -->
+            <RowDefinition Height="Auto"/>   <!-- tab bar -->
+            <RowDefinition Height="*"/>      <!-- content -->
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Active Tasks" FontSize="22" FontWeight="SemiBold"
+        <!-- ══ Title ══════════════════════════════════════════════════════════ -->
+        <TextBlock Grid.Row="0" Text="Tasks" FontSize="22" FontWeight="SemiBold"
                    FontFamily="Segoe UI" Foreground="{StaticResource ColorTextPrimary}"
-                   Margin="0,0,0,16"/>
+                   Margin="0,0,0,12"/>
 
-        <Border Grid.Row="1" Background="{StaticResource ColorSurface}"
-                CornerRadius="6" BorderBrush="{StaticResource ColorBorder}" BorderThickness="1">
-            <ListView ItemsSource="{Binding ActiveTasks}"
-                      BorderThickness="0" Background="Transparent"
-                      ScrollViewer.HorizontalScrollBarVisibility="Auto">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="" Width="36"
-                                        DisplayMemberBinding="{Binding StatusIcon}"/>
-                        <GridViewColumn Header="Type" Width="130"
-                                        DisplayMemberBinding="{Binding TaskType}"/>
-                        <GridViewColumn Header="Account" Width="170"
-                                        DisplayMemberBinding="{Binding AccountId}"/>
-                        <GridViewColumn Header="Status" Width="110"
-                                        DisplayMemberBinding="{Binding Status}"/>
-                        <GridViewColumn Header="Duration" Width="90"
-                                        DisplayMemberBinding="{Binding Duration}"/>
-                    </GridView>
-                </ListView.View>
-            </ListView>
+        <!-- ══ Tab bar ════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="1" BorderBrush="#3E4451" BorderThickness="0,0,0,1" Margin="0,0,0,18">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <RadioButton Style="{StaticResource TabRadio}" GroupName="TaskTab"
+                                 Content="Local Tasks" IsChecked="{Binding IsLocalTab}"/>
+                    <RadioButton Style="{StaticResource TabRadio}" GroupName="TaskTab"
+                                 Content="External Tasks" IsChecked="{Binding IsExternalTab}"/>
+                </StackPanel>
+                <Button Grid.Column="1" Style="{StaticResource PrimaryButton}"
+                        Content="+ New Task" Command="{Binding AddTaskCommand}"
+                        Visibility="{Binding NewTaskButtonVisibility}"
+                        Margin="0,4,0,4"/>
+            </Grid>
         </Border>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!--  LOCAL TASKS PANEL                                                 -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="2" Visibility="{Binding LocalTabVisibility}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Table -->
+            <Border Grid.Row="0" Background="{StaticResource ColorSurface}"
+                    CornerRadius="6" BorderBrush="{StaticResource ColorBorder}"
+                    BorderThickness="1" ClipToBounds="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Column headers -->
+                    <Border Grid.Row="0" Background="#21252B" BorderBrush="#3E4451" BorderThickness="0,0,0,1" Padding="16,9">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"   MinWidth="120"/>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="65"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="95"/>
+                                <ColumnDefinition Width="88"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="НАЗВАНИЕ"  Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="1" Text="ТИП"       Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="2" Text="АККАУНТ"   Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="3" Text="КОЛ-ВО"    Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="4" Text="ПОВТОР"    Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="5" Text="СТАТУС"    Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="6" Text=""           Style="{StaticResource ColHeader}"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Empty state -->
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                Visibility="{Binding EmptyLocalVisibility}">
+                        <TextBlock Text="📋" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <TextBlock Text="Нет локальных задач"
+                                   Foreground="#4B5263" FontSize="14" FontFamily="Segoe UI"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Нажмите «+ New Task» чтобы добавить"
+                                   Foreground="#3E4451" FontSize="12" FontFamily="Segoe UI"
+                                   HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    </StackPanel>
+
+                    <!-- Task rows -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding LocalTasks}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#3E4451" BorderThickness="0,0,0,1">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#2C313C"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid Margin="16,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"   MinWidth="120"/>
+                                                <ColumnDefinition Width="110"/>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="65"/>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="95"/>
+                                                <ColumnDefinition Width="88"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Name -->
+                                            <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                                       Style="{StaticResource RowText}"/>
+
+                                            <!-- Type badge -->
+                                            <Border Grid.Column="1" CornerRadius="4" Padding="8,3"
+                                                    Background="{Binding TypeBadgeBrush}"
+                                                    HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding TaskType}" Foreground="#1B2033"
+                                                           FontSize="11" FontWeight="SemiBold" FontFamily="Segoe UI"/>
+                                            </Border>
+
+                                            <!-- Account -->
+                                            <TextBlock Grid.Column="2" Text="{Binding AccountLabel}"
+                                                       Style="{StaticResource RowText}"/>
+
+                                            <!-- Count -->
+                                            <TextBlock Grid.Column="3" Text="{Binding CountLabel}"
+                                                       Style="{StaticResource RowTextDim}"/>
+
+                                            <!-- Repeat -->
+                                            <TextBlock Grid.Column="4" Text="{Binding RepeatLabel}"
+                                                       Style="{StaticResource RowTextDim}"/>
+
+                                            <!-- Status dot + label -->
+                                            <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Ellipse Width="7" Height="7" VerticalAlignment="Center"
+                                                         Fill="{Binding StatusBrush}" Margin="0,0,6,0"/>
+                                                <TextBlock Text="{Binding StatusLabel}" FontSize="12"
+                                                           FontFamily="Segoe UI"
+                                                           Foreground="{Binding StatusBrush}"/>
+                                            </StackPanel>
+
+                                            <!-- Action buttons -->
+                                            <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Style="{StaticResource RowBtn}" Content="▶" ToolTip="Запустить"
+                                                        Command="{Binding DataContext.RunTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"/>
+                                                <Button Style="{StaticResource RowBtn}" Content="{Binding PauseIcon}" ToolTip="Пауза / Возобновить"
+                                                        Command="{Binding DataContext.TogglePauseCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"/>
+                                                <Button Style="{StaticResource RowBtn}" Content="✕" ToolTip="Удалить"
+                                                        Foreground="#E06C75"
+                                                        Command="{Binding DataContext.DeleteLocalTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- ── Add Task Form ──────────────────────────────────────────── -->
+            <Border Grid.Row="1" Margin="0,14,0,0"
+                    Visibility="{Binding AddFormVisibility}"
+                    Background="{StaticResource ColorSurface}"
+                    CornerRadius="6" BorderBrush="#61AFEF" BorderThickness="1"
+                    Padding="18,16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="14"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="Новая задача"
+                               Foreground="#ABB2BF" FontSize="13" FontWeight="SemiBold" FontFamily="Segoe UI"/>
+
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="1.5*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="70"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Name -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Название" Foreground="#636D83" FontSize="11"
+                                       FontFamily="Segoe UI" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding NewTaskName, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <!-- Type -->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Тип" Foreground="#636D83" FontSize="11"
+                                       FontFamily="Segoe UI" Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{Binding TaskTypes}"
+                                      SelectedItem="{Binding NewTaskType}"/>
+                        </StackPanel>
+
+                        <!-- Account -->
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="Аккаунт" Foreground="#636D83" FontSize="11"
+                                       FontFamily="Segoe UI" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding NewTaskAccount, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <!-- Count -->
+                        <StackPanel Grid.Column="6">
+                            <TextBlock Text="Кол-во" Foreground="#636D83" FontSize="11"
+                                       FontFamily="Segoe UI" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding NewTaskCount, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <!-- Repeat -->
+                        <StackPanel Grid.Column="8">
+                            <TextBlock Text="Повтор" Foreground="#636D83" FontSize="11"
+                                       FontFamily="Segoe UI" Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{Binding RepeatModes}"
+                                      SelectedItem="{Binding NewTaskRepeat}"/>
+                        </StackPanel>
+
+                        <!-- Buttons -->
+                        <StackPanel Grid.Column="10" Orientation="Horizontal" VerticalAlignment="Bottom">
+                            <Button Style="{StaticResource SecondaryButton}" Content="Отмена"
+                                    Command="{Binding CancelTaskCommand}" Margin="0,0,8,0"/>
+                            <Button Style="{StaticResource PrimaryButton}"   Content="Сохранить"
+                                    Command="{Binding SaveTaskCommand}"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!--  EXTERNAL TASKS PANEL                                              -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="2" Visibility="{Binding ExternalTabVisibility}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Info banner -->
+            <Border Grid.Row="0" Background="#21252B" CornerRadius="6"
+                    BorderBrush="#3E4451" BorderThickness="1" Padding="14,10" Margin="0,0,0,14">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="ℹ" Foreground="#61AFEF" FontSize="14" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                    <TextBlock Foreground="#636D83" FontSize="12" FontFamily="Segoe UI" VerticalAlignment="Center">
+                        <Run Text="Задачи от стороннего приложения через API. Порт: "/>
+                        <Run Text="7201" Foreground="#61AFEF"/>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <!-- Table -->
+            <Border Grid.Row="1" Background="{StaticResource ColorSurface}"
+                    CornerRadius="6" BorderBrush="{StaticResource ColorBorder}"
+                    BorderThickness="1" ClipToBounds="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Column headers -->
+                    <Border Grid.Row="0" Background="#21252B" BorderBrush="#3E4451" BorderThickness="0,0,0,1" Padding="12,9">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="36"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="180"/>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="90"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text=""         Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="1" Text="ТИП"     Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="2" Text="АККАУНТ" Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="3" Text="СТАТУС"  Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="4" Text="ВРЕМЯ"   Style="{StaticResource ColHeader}"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Empty state -->
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActiveTasks.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <TextBlock Text="⏳" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <TextBlock Text="Нет активных внешних задач"
+                                   Foreground="#4B5263" FontSize="14" FontFamily="Segoe UI"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Rows -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding ActiveTasks}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#3E4451" BorderThickness="0,0,0,1">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#2C313C"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid Margin="12,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="36"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="180"/>
+                                                <ColumnDefinition Width="110"/>
+                                                <ColumnDefinition Width="90"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding StatusIcon}" FontSize="14" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding TaskType}"   Style="{StaticResource RowText}"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding AccountId}"  Style="{StaticResource RowText}"/>
+                                            <TextBlock Grid.Column="3" Text="{Binding Status}"     Style="{StaticResource RowTextDim}"/>
+                                            <TextBlock Grid.Column="4" Text="{Binding Duration}"   Style="{StaticResource RowTextDim}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>
