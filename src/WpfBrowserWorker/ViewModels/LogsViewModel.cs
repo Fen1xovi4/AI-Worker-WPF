@@ -34,6 +34,6 @@ public class LogEntry
         "ERR" => "#EF4444",
         "WRN" => "#F59E0B",
         "DBG" => "#9CA3AF",
-        _ => "#374151"
+        _ => "#61AFEF"
     };
 }

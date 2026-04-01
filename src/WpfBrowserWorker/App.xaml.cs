@@ -43,6 +43,10 @@ public partial class App : Application
         var telegramListener = _webApp.Services.GetRequiredService<TelegramListenerService>();
         _ = Task.Run(() => telegramListener.StartAllAsync());
 
+        // Wire Serilog → LogsViewModel
+        var logsVm = _webApp.Services.GetRequiredService<LogsViewModel>();
+        InMemoryLogSink.Instance.Attach(logsVm.AddEntry);
+
         var mainWindow = _webApp.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
     }
@@ -90,6 +94,7 @@ public partial class App : Application
             .WriteTo.File("logs/worker-.log",
                 rollingInterval: Serilog.RollingInterval.Day,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.Sink(InMemoryLogSink.Instance)
             .CreateLogger();
     }
 
@@ -155,7 +160,7 @@ public partial class App : Application
                 sp.GetRequiredService<ProfileService>(),
                 sp.GetRequiredService<TelegramBotService>(),
                 sp.GetRequiredService<TelegramListenerService>()));
-        builder.Services.AddTransient<LogsViewModel>();
+        builder.Services.AddSingleton<LogsViewModel>();
         builder.Services.AddTransient<ProfilesViewModel>();
         builder.Services.AddTransient<SettingsViewModel>(sp =>
             new SettingsViewModel(
