@@ -195,14 +195,12 @@ public class InstagramPublisher
                 "Share", "Поделиться", "Udostępnij", "Teilen", "Partager", "Compartir");
             if (!ok) return PublishResult.Fail("Share button not found", await ScreenshotAsync(driver));
 
-            // Wait for upload to complete — Instagram shows a success screen inside the same modal.
-            // URL may not change and the dialog stays open, so we just wait and treat Share click as success.
-            await WaitAsync(Random.Shared.Next(6000, 10000), ct);
+            // ── 9. Wait for success; auto-retry if Instagram shows an error ────
+            var published = await WaitForShareSuccessAsync(driver, ct);
+            if (!published)
+                return PublishResult.Fail("Post was not confirmed as published after Share", await ScreenshotAsync(driver));
 
-            // Best-effort check — if URL/modal changed quickly, great; otherwise assume success.
-            await WaitForUrlChangeOrModalCloseAsync(driver, TimeSpan.FromSeconds(15));
-
-            Log.Information("Instagram post published successfully");
+            Log.Information("[OK] Instagram: post published successfully");
             return PublishResult.Ok();
         }
         catch (OperationCanceledException)
@@ -333,22 +331,106 @@ public class InstagramPublisher
         ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", element);
     }
 
-    private static async Task<bool> WaitForUrlChangeOrModalCloseAsync(IWebDriver driver, TimeSpan timeout)
+    // Success keywords shown in the modal after a successful share
+    private static readonly string[] SuccessTexts =
+    [
+        "post has been shared", "your post has been shared",    // EN
+        "публикация опубликована", "пост опубликован",          // RU
+        "post został udostępniony",                             // PL
+        "beitrag wurde geteilt",                                // DE
+        "publication partagée",                                 // FR
+        "publicación compartida",                               // ES
+    ];
+
+    // "Try again" button labels shown when Instagram fails to upload
+    private static readonly string[] RetryTexts =
+    [
+        "try again",              // EN
+        "попробовать снова",      // RU
+        "spróbuj ponownie",       // PL
+        "erneut versuchen",       // DE
+        "réessayer",              // FR
+        "volver a intentarlo",    // ES
+    ];
+
+    /// <summary>
+    /// After clicking Share, waits up to ~45 s for Instagram to confirm the post.
+    /// If Instagram shows a "Try again" button (upload error), clicks it automatically
+    /// (up to 2 retries). Returns true only when success is confirmed.
+    /// </summary>
+    private async Task<bool> WaitForShareSuccessAsync(IWebDriver driver, CancellationToken ct)
     {
+        const int maxRetries   = 2;
+        const int totalSeconds = 45;
+
         var originalUrl = driver.Url;
-        var until = DateTime.UtcNow + timeout;
+        var until       = DateTime.UtcNow + TimeSpan.FromSeconds(totalSeconds);
+        var retryCount  = 0;
+
+        // Initial upload delay — Instagram needs a few seconds to process
+        await Task.Delay(Random.Shared.Next(5000, 8000), ct);
+
         while (DateTime.UtcNow < until)
         {
-            // Either URL changed (navigated away) or the create modal disappeared
-            if (driver.Url != originalUrl) return true;
+            ct.ThrowIfCancellationRequested();
+
+            // ── success: URL navigated away ───────────────────────────────────
+            if (driver.Url != originalUrl)
+            {
+                Log.Debug("Instagram: URL changed → success");
+                return true;
+            }
+
             try
             {
-                var modals = driver.FindElements(By.CssSelector("div[role='dialog']"));
-                if (modals.Count == 0) return true;
+                // ── success: modal closed ─────────────────────────────────────
+                var dialogs = driver.FindElements(By.CssSelector("div[role='dialog']"));
+                if (dialogs.Count == 0)
+                {
+                    Log.Debug("Instagram: dialog closed → success");
+                    return true;
+                }
+
+                // ── success: visible success text inside the modal ────────────
+                var pageText = driver.FindElement(By.TagName("body")).Text.ToLowerInvariant();
+                if (SuccessTexts.Any(t => pageText.Contains(t)))
+                {
+                    Log.Debug("Instagram: success text detected");
+                    return true;
+                }
+
+                // ── error: "Try again" button appeared ────────────────────────
+                if (retryCount < maxRetries)
+                {
+                    var buttons = driver.FindElements(By.CssSelector("button, div[role='button']"));
+                    var retryBtn = buttons.FirstOrDefault(b =>
+                    {
+                        if (!b.Displayed) return false;
+                        var label = b.Text.Trim().ToLowerInvariant();
+                        return RetryTexts.Any(t => label.Contains(t));
+                    });
+
+                    if (retryBtn is not null)
+                    {
+                        retryCount++;
+                        Log.Warning("Instagram: upload error detected, auto-retrying ({N}/{Max})", retryCount, maxRetries);
+                        await _human.MoveAndClickAsync(driver, retryBtn, ct);
+                        // Give Instagram time to re-attempt the upload
+                        await Task.Delay(Random.Shared.Next(7000, 11000), ct);
+                        continue;
+                    }
+                }
             }
-            catch { return true; }
-            await Task.Delay(1000);
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                Log.Debug("Instagram WaitForShareSuccess check failed: {Msg}", ex.Message);
+                return true; // DOM may have changed due to navigation — treat as success
+            }
+
+            await Task.Delay(1500, ct);
         }
+
+        Log.Warning("Instagram: share confirmation timed out after {Sec}s", totalSeconds);
         return false;
     }
 

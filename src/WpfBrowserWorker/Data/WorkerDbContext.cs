@@ -11,6 +11,7 @@ public class WorkerDbContext(DbContextOptions<WorkerDbContext> options) : DbCont
     public DbSet<ProfilePage> ProfilePages => Set<ProfilePage>();
     public DbSet<TelegramBotConfig> TelegramBots => Set<TelegramBotConfig>();
     public DbSet<PublishLog> PublishLogs => Set<PublishLog>();
+    public DbSet<LocalScheduledTask> LocalScheduledTasks => Set<LocalScheduledTask>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

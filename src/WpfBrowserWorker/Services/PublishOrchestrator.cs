@@ -137,7 +137,7 @@ public class PublishOrchestrator : IAsyncDisposable
         }
         catch (Exception ex) when (ex.Message.Contains("DevToolsActivePort") || ex.Message.Contains("crashed"))
         {
-            Log.Warning("Chrome crash on first start for account {AccountId} — retrying after cleanup", accountId);
+            Log.Warning("Chrome crashed on startup [account #{AccountId}] — retrying after cleanup", accountId);
             await Task.Delay(3000, ct);
             KillChromeForProfile(resolution.ProfilePath);
             ReleaseProfileLock(resolution.ProfilePath);
@@ -145,7 +145,7 @@ public class PublishOrchestrator : IAsyncDisposable
         }
 
         _browsers[accountId] = driver;
-        Log.Information("PublishOrchestrator: opened browser for account {AccountId}", accountId);
+        Log.Information("Browser opened [account #{AccountId}]", accountId);
         return driver;
     }
 
@@ -294,7 +294,7 @@ public class PublishOrchestrator : IAsyncDisposable
     public void CloseDriver(int accountId)
     {
         RemoveDriver(accountId);
-        Log.Information("PublishOrchestrator: closed browser for account {AccountId}", accountId);
+        Log.Information("Browser closed [account #{AccountId}]", accountId);
     }
 
     public async ValueTask DisposeAsync()

@@ -43,6 +43,9 @@ public partial class App : Application
         var telegramListener = _webApp.Services.GetRequiredService<TelegramListenerService>();
         _ = Task.Run(() => telegramListener.StartAllAsync());
 
+        // Start local task scheduler
+        _webApp.Services.GetRequiredService<SchedulerService>().Start();
+
         // Wire Serilog → LogsViewModel
         var logsVm = _webApp.Services.GetRequiredService<LogsViewModel>();
         InMemoryLogSink.Instance.Attach(logsVm.AddEntry);
@@ -54,6 +57,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _webApp?.Services.GetService<TelegramListenerService>()?.StopAll();
+        _webApp?.Services.GetService<SchedulerService>()?.Stop();
         (_webApp?.Services.GetService<PublishOrchestrator>())?.DisposeAsync().AsTask().Wait();
         _apiCts?.Cancel();
         _webApp?.StopAsync(TimeSpan.FromSeconds(3)).Wait();
@@ -126,6 +130,8 @@ public partial class App : Application
         builder.Services.AddSingleton<TelegramBotService>();
         builder.Services.AddSingleton<PublishOrchestrator>();
         builder.Services.AddSingleton<TelegramListenerService>();
+        builder.Services.AddSingleton<LocalTaskService>();
+        builder.Services.AddSingleton<SchedulerService>();
         builder.Services.AddSingleton<IBrowserManager, BrowserManager>();
         builder.Services.AddSingleton<HumanBehaviorSimulator>();
         builder.Services.AddSingleton<FingerprintGenerator>();
@@ -154,7 +160,11 @@ public partial class App : Application
         // ViewModels
         builder.Services.AddTransient<MainViewModel>();
         builder.Services.AddTransient<DashboardViewModel>();
-        builder.Services.AddTransient<TaskListViewModel>();
+        builder.Services.AddTransient<TaskListViewModel>(sp =>
+            new TaskListViewModel(
+                sp.GetRequiredService<WorkerStateService>(),
+                sp.GetRequiredService<LocalTaskService>(),
+                sp.GetRequiredService<ProfileService>()));
         builder.Services.AddTransient<AccountsViewModel>(sp =>
             new AccountsViewModel(
                 sp.GetRequiredService<ProfileService>(),
@@ -245,6 +255,25 @@ public partial class App : Application
                 )
                 """);
             db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_PublishLogs_AccountId" ON "PublishLogs" ("AccountId") """);
+
+            db.Database.ExecuteSqlRaw("""
+                CREATE TABLE IF NOT EXISTS "LocalScheduledTasks" (
+                    "Id"          INTEGER NOT NULL CONSTRAINT "PK_LocalScheduledTasks" PRIMARY KEY AUTOINCREMENT,
+                    "Name"        TEXT    NOT NULL DEFAULT '',
+                    "TaskType"    TEXT    NOT NULL DEFAULT 'like',
+                    "Platform"    TEXT    NOT NULL DEFAULT 'instagram',
+                    "AccountId"   INTEGER,
+                    "TargetUrl"   TEXT,
+                    "Count"       INTEGER NOT NULL DEFAULT 50,
+                    "RepeatMode"  TEXT    NOT NULL DEFAULT 'once',
+                    "DaysJson"    TEXT    NOT NULL DEFAULT '[]',
+                    "TimeOfDay"   TEXT    NOT NULL DEFAULT '09:00',
+                    "IsActive"    INTEGER NOT NULL DEFAULT 1,
+                    "LastRunAt"   TEXT,
+                    "NextRunAt"   TEXT,
+                    "CreatedAt"   TEXT    NOT NULL DEFAULT ''
+                )
+                """);
         }
 
         app.MapWorkerEndpoints();

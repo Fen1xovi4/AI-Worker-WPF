@@ -63,6 +63,68 @@
             </Setter>
         </Style>
 
+        <!-- Platform RadioButton pill -->
+        <Style x:Key="PlatformRadio" TargetType="RadioButton">
+            <Setter Property="Background"      Value="#2C313C"/>
+            <Setter Property="Foreground"      Value="#636D83"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush"     Value="#3E4451"/>
+            <Setter Property="Padding"         Value="12,5"/>
+            <Setter Property="FontSize"        Value="12"/>
+            <Setter Property="FontFamily"      Value="Segoe UI"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="4" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background"   Value="#3E4451"/>
+                                <Setter TargetName="Bd" Property="BorderBrush"  Value="#61AFEF"/>
+                                <Setter Property="Foreground" Value="#ABB2BF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Day CheckBox pill -->
+        <Style x:Key="DayCheck" TargetType="CheckBox">
+            <Setter Property="Background"      Value="#2C313C"/>
+            <Setter Property="Foreground"      Value="#636D83"/>
+            <Setter Property="BorderBrush"     Value="#3E4451"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding"         Value="10,5"/>
+            <Setter Property="FontSize"        Value="12"/>
+            <Setter Property="FontFamily"      Value="Segoe UI"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="4" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background"  Value="#3E4451"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#61AFEF"/>
+                                <Setter Property="Foreground" Value="#61AFEF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Section label -->
         <Style x:Key="ColHeader" TargetType="TextBlock">
             <Setter Property="Foreground"   Value="#636D83"/>
@@ -83,9 +145,17 @@
         <!-- Dim row text (secondary) -->
         <Style x:Key="RowTextDim" TargetType="TextBlock">
             <Setter Property="Foreground"        Value="#636D83"/>
-            <Setter Property="FontSize"          Value="13"/>
+            <Setter Property="FontSize"          Value="12"/>
             <Setter Property="FontFamily"        Value="Segoe UI"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Form label -->
+        <Style x:Key="FormLabel" TargetType="TextBlock">
+            <Setter Property="Foreground"   Value="#636D83"/>
+            <Setter Property="FontSize"     Value="11"/>
+            <Setter Property="FontFamily"   Value="Segoe UI"/>
+            <Setter Property="Margin"       Value="0,0,0,5"/>
         </Style>
     </UserControl.Resources>
 
@@ -141,24 +211,28 @@
                     </Grid.RowDefinitions>
 
                     <!-- Column headers -->
-                    <Border Grid.Row="0" Background="#21252B" BorderBrush="#3E4451" BorderThickness="0,0,0,1" Padding="16,9">
+                    <Border Grid.Row="0" Background="#21252B" BorderBrush="#3E4451" BorderThickness="0,0,0,1" Padding="14,9">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"   MinWidth="120"/>
-                                <ColumnDefinition Width="110"/>
-                                <ColumnDefinition Width="150"/>
-                                <ColumnDefinition Width="65"/>
-                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"   MinWidth="100"/>
                                 <ColumnDefinition Width="95"/>
+                                <ColumnDefinition Width="85"/>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="55"/>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="95"/>
+                                <ColumnDefinition Width="85"/>
                                 <ColumnDefinition Width="88"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="НАЗВАНИЕ"  Style="{StaticResource ColHeader}"/>
-                            <TextBlock Grid.Column="1" Text="ТИП"       Style="{StaticResource ColHeader}"/>
-                            <TextBlock Grid.Column="2" Text="АККАУНТ"   Style="{StaticResource ColHeader}"/>
-                            <TextBlock Grid.Column="3" Text="КОЛ-ВО"    Style="{StaticResource ColHeader}"/>
-                            <TextBlock Grid.Column="4" Text="ПОВТОР"    Style="{StaticResource ColHeader}"/>
-                            <TextBlock Grid.Column="5" Text="СТАТУС"    Style="{StaticResource ColHeader}"/>
-                            <TextBlock Grid.Column="6" Text=""           Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="0" Text="НАЗВАНИЕ"      Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="1" Text="ТИП"           Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="2" Text="ПЛОЩАДКА"      Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="3" Text="АККАУНТ"       Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="4" Text="КОЛ-ВО"        Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="5" Text="РАСПИСАНИЕ"    Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="6" Text="СЛЕД. ЗАПУСК"  Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="7" Text="СТАТУС"        Style="{StaticResource ColHeader}"/>
+                            <TextBlock Grid.Column="8" Text=""              Style="{StaticResource ColHeader}"/>
                         </Grid>
                     </Border>
 
@@ -190,14 +264,16 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <Grid Margin="16,10">
+                                        <Grid Margin="14,9">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"   MinWidth="120"/>
-                                                <ColumnDefinition Width="110"/>
-                                                <ColumnDefinition Width="150"/>
-                                                <ColumnDefinition Width="65"/>
-                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="*"   MinWidth="100"/>
                                                 <ColumnDefinition Width="95"/>
+                                                <ColumnDefinition Width="85"/>
+                                                <ColumnDefinition Width="130"/>
+                                                <ColumnDefinition Width="55"/>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="95"/>
+                                                <ColumnDefinition Width="85"/>
                                                 <ColumnDefinition Width="88"/>
                                             </Grid.ColumnDefinitions>
 
@@ -206,27 +282,42 @@
                                                        Style="{StaticResource RowText}"/>
 
                                             <!-- Type badge -->
-                                            <Border Grid.Column="1" CornerRadius="4" Padding="8,3"
+                                            <Border Grid.Column="1" CornerRadius="4" Padding="7,3"
                                                     Background="{Binding TypeBadgeBrush}"
                                                     HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding TaskType}" Foreground="#1B2033"
+                                                <TextBlock Text="{Binding TaskTypeLabel}" Foreground="#1B2033"
                                                            FontSize="11" FontWeight="SemiBold" FontFamily="Segoe UI"/>
                                             </Border>
 
+                                            <!-- Platform badge -->
+                                            <Border Grid.Column="2" CornerRadius="4" Padding="7,3"
+                                                    Background="#2C313C" BorderBrush="{Binding PlatformBrush}"
+                                                    BorderThickness="1"
+                                                    HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding PlatformLabel}"
+                                                           Foreground="{Binding PlatformBrush}"
+                                                           FontSize="11" FontFamily="Segoe UI"/>
+                                            </Border>
+
                                             <!-- Account -->
-                                            <TextBlock Grid.Column="2" Text="{Binding AccountLabel}"
-                                                       Style="{StaticResource RowText}"/>
+                                            <TextBlock Grid.Column="3" Text="{Binding AccountDisplayLabel}"
+                                                       Style="{StaticResource RowTextDim}"
+                                                       TextTrimming="CharacterEllipsis"/>
 
                                             <!-- Count -->
-                                            <TextBlock Grid.Column="3" Text="{Binding CountLabel}"
+                                            <TextBlock Grid.Column="4" Text="{Binding CountLabel}"
                                                        Style="{StaticResource RowTextDim}"/>
 
-                                            <!-- Repeat -->
-                                            <TextBlock Grid.Column="4" Text="{Binding RepeatLabel}"
+                                            <!-- Schedule -->
+                                            <TextBlock Grid.Column="5" Text="{Binding ScheduleLabel}"
+                                                       Style="{StaticResource RowTextDim}"/>
+
+                                            <!-- Next run -->
+                                            <TextBlock Grid.Column="6" Text="{Binding NextRunLabel}"
                                                        Style="{StaticResource RowTextDim}"/>
 
                                             <!-- Status dot + label -->
-                                            <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <StackPanel Grid.Column="7" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <Ellipse Width="7" Height="7" VerticalAlignment="Center"
                                                          Fill="{Binding StatusBrush}" Margin="0,0,6,0"/>
                                                 <TextBlock Text="{Binding StatusLabel}" FontSize="12"
@@ -235,8 +326,8 @@
                                             </StackPanel>
 
                                             <!-- Action buttons -->
-                                            <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center">
-                                                <Button Style="{StaticResource RowBtn}" Content="▶" ToolTip="Запустить"
+                                            <StackPanel Grid.Column="8" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Style="{StaticResource RowBtn}" Content="▶" ToolTip="Запустить сейчас"
                                                         Command="{Binding DataContext.RunTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                         CommandParameter="{Binding}"/>
                                                 <Button Style="{StaticResource RowBtn}" Content="{Binding PauseIcon}" ToolTip="Пауза / Возобновить"
@@ -257,82 +348,136 @@
             </Border>
 
             <!-- ── Add Task Form ──────────────────────────────────────────── -->
-            <Border Grid.Row="1" Margin="0,14,0,0"
+            <Border Grid.Row="1" Margin="0,12,0,0"
                     Visibility="{Binding AddFormVisibility}"
                     Background="{StaticResource ColorSurface}"
                     CornerRadius="6" BorderBrush="#61AFEF" BorderThickness="1"
-                    Padding="18,16">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="14"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                    Padding="16,14">
+                <StackPanel>
+                    <TextBlock Text="Новая задача"
+                               Foreground="#ABB2BF" FontSize="13" FontWeight="SemiBold"
+                               FontFamily="Segoe UI" Margin="0,0,0,12"/>
 
-                    <TextBlock Grid.Row="0" Text="Новая задача"
-                               Foreground="#ABB2BF" FontSize="13" FontWeight="SemiBold" FontFamily="Segoe UI"/>
-
-                    <Grid Grid.Row="2">
+                    <!-- Row 1: Name / Type / Target / Count -->
+                    <Grid Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="12"/>
-                            <ColumnDefinition Width="1.5*"/>
-                            <ColumnDefinition Width="12"/>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="12"/>
-                            <ColumnDefinition Width="70"/>
-                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="10"/>
                             <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="16"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="65"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Name -->
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Название" Foreground="#636D83" FontSize="11"
-                                       FontFamily="Segoe UI" Margin="0,0,0,5"/>
+                            <TextBlock Text="Название" Style="{StaticResource FormLabel}"/>
                             <TextBox Text="{Binding NewTaskName, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
 
-                        <!-- Type -->
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="Тип" Foreground="#636D83" FontSize="11"
-                                       FontFamily="Segoe UI" Margin="0,0,0,5"/>
+                            <TextBlock Text="Тип" Style="{StaticResource FormLabel}"/>
                             <ComboBox ItemsSource="{Binding TaskTypes}"
                                       SelectedItem="{Binding NewTaskType}"/>
                         </StackPanel>
 
-                        <!-- Account -->
-                        <StackPanel Grid.Column="4">
-                            <TextBlock Text="Аккаунт" Foreground="#636D83" FontSize="11"
-                                       FontFamily="Segoe UI" Margin="0,0,0,5"/>
-                            <TextBox Text="{Binding NewTaskAccount, UpdateSourceTrigger=PropertyChanged}"/>
+                        <StackPanel Grid.Column="4" Visibility="{Binding ShowTargetField}">
+                            <TextBlock Text="Цель (URL / @username)" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding NewTaskTarget, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
 
-                        <!-- Count -->
                         <StackPanel Grid.Column="6">
-                            <TextBlock Text="Кол-во" Foreground="#636D83" FontSize="11"
-                                       FontFamily="Segoe UI" Margin="0,0,0,5"/>
+                            <TextBlock Text="Кол-во" Style="{StaticResource FormLabel}"/>
                             <TextBox Text="{Binding NewTaskCount, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
+                    </Grid>
 
-                        <!-- Repeat -->
-                        <StackPanel Grid.Column="8">
-                            <TextBlock Text="Повтор" Foreground="#636D83" FontSize="11"
-                                       FontFamily="Segoe UI" Margin="0,0,0,5"/>
+                    <!-- Row 2: Platform / Account / Repeat / Time -->
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="65"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Platform -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Площадка" Style="{StaticResource FormLabel}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton Style="{StaticResource PlatformRadio}" GroupName="FormPlatform"
+                                             Content="Instagram" Margin="0,0,6,0"
+                                             IsChecked="{Binding NewTaskPlatformInstagram}"/>
+                                <RadioButton Style="{StaticResource PlatformRadio}" GroupName="FormPlatform"
+                                             Content="Threads"
+                                             IsChecked="{Binding NewTaskPlatformThreads}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Account -->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Аккаунт" Style="{StaticResource FormLabel}"/>
+                            <ComboBox ItemsSource="{Binding Accounts}"
+                                      DisplayMemberPath="Label"
+                                      SelectedValuePath="Id"
+                                      SelectedValue="{Binding NewTaskAccountId}"/>
+                        </StackPanel>
+
+                        <!-- Repeat mode -->
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="Повтор" Style="{StaticResource FormLabel}"/>
                             <ComboBox ItemsSource="{Binding RepeatModes}"
                                       SelectedItem="{Binding NewTaskRepeat}"/>
                         </StackPanel>
 
-                        <!-- Buttons -->
-                        <StackPanel Grid.Column="10" Orientation="Horizontal" VerticalAlignment="Bottom">
-                            <Button Style="{StaticResource SecondaryButton}" Content="Отмена"
-                                    Command="{Binding CancelTaskCommand}" Margin="0,0,8,0"/>
-                            <Button Style="{StaticResource PrimaryButton}"   Content="Сохранить"
-                                    Command="{Binding SaveTaskCommand}"/>
+                        <!-- Time of day -->
+                        <StackPanel Grid.Column="6" Visibility="{Binding ShowDaysRow}">
+                            <TextBlock Text="Время" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding NewTaskTime, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Формат HH:mm, например 09:30"/>
                         </StackPanel>
                     </Grid>
-                </Grid>
+
+                    <!-- Row 3: Days of week (conditional) -->
+                    <Grid Margin="0,0,0,12" Visibility="{Binding ShowDaysRow}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Дни недели" Style="{StaticResource FormLabel}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox Style="{StaticResource DayCheck}" Content="Пн" Margin="0,0,5,0"
+                                          IsChecked="{Binding DayMon}"/>
+                                <CheckBox Style="{StaticResource DayCheck}" Content="Вт" Margin="0,0,5,0"
+                                          IsChecked="{Binding DayTue}"/>
+                                <CheckBox Style="{StaticResource DayCheck}" Content="Ср" Margin="0,0,5,0"
+                                          IsChecked="{Binding DayWed}"/>
+                                <CheckBox Style="{StaticResource DayCheck}" Content="Чт" Margin="0,0,5,0"
+                                          IsChecked="{Binding DayThu}"/>
+                                <CheckBox Style="{StaticResource DayCheck}" Content="Пт" Margin="0,0,5,0"
+                                          IsChecked="{Binding DayFri}"/>
+                                <CheckBox Style="{StaticResource DayCheck}" Content="Сб" Margin="0,0,5,0"
+                                          IsChecked="{Binding DaySat}"/>
+                                <CheckBox Style="{StaticResource DayCheck}" Content="Вс"
+                                          IsChecked="{Binding DaySun}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Buttons -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource SecondaryButton}" Content="Отмена"
+                                Command="{Binding CancelTaskCommand}" Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Сохранить"
+                                Command="{Binding SaveTaskCommand}"/>
+                    </StackPanel>
+                </StackPanel>
             </Border>
         </Grid>
 

@@ -74,7 +74,7 @@ public class AiContentService
                         .GetProperty("content")
                         .GetString() ?? string.Empty;
 
-        Log.Information("AiContentService: generated {Chars} chars for [{Platform}]", result.Length, platform);
+        Log.Information("AI text generated for {Platform} ({Chars} chars)", platform, result.Length);
         return result.Trim();
     }
 

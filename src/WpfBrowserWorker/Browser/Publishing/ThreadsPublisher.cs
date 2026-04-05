@@ -136,7 +136,7 @@ public class ThreadsPublisher
 
             await WaitAsync(Random.Shared.Next(5000, 9000), ct);
 
-            Log.Information("Threads post published successfully");
+            Log.Information("[OK] Threads: post published successfully");
             return PublishResult.Ok();
         }
         catch (OperationCanceledException)

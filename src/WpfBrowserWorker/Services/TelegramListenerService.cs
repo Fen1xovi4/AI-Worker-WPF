@@ -113,8 +113,8 @@ public class TelegramListenerService
             return;
         }
 
-        Log.Information("Telegram bot got message from chat {ChatId} for account {AccountId}: '{Text}'",
-            chatId, accountId, text.Length > 60 ? text[..60] + "…" : text);
+        Log.Information("Telegram [account #{AccountId}]: '{Text}'",
+            accountId, text.Length > 80 ? text[..80] + "…" : text);
 
         _ = _botService.UpdateChatIdAsync(accountId, chatId);
 

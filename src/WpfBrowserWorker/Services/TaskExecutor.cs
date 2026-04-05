@@ -31,8 +31,8 @@ public class TaskExecutor
 
     public async Task ExecuteTaskAsync(BrowserTask task, CancellationToken ct)
     {
-        Log.Information("Starting task {TaskType} [{TaskId}] for account {AccountId}",
-            task.TaskType, task.Id, task.AccountId);
+        Log.Information("Task #{TaskId} started: {TaskType} [account #{AccountId}]",
+            task.Id, task.TaskType, task.AccountId);
 
         _state.TrackTask(task.Id.ToString(), task.AccountId?.ToString() ?? "none", task.TaskType);
 
@@ -90,8 +90,8 @@ public class TaskExecutor
 
             _state.RecordTaskResult(result);
 
-            Log.Information("Task {TaskId} {Status} in {DurationMs}ms",
-                task.Id, result.Success ? "completed" : "failed", result.DurationMs);
+            Log.Information("Task #{TaskId}: {Status} ({DurationMs}ms)",
+                task.Id, result.Success ? "completed" : "FAILED", result.DurationMs);
         }
         catch (Exception ex)
         {

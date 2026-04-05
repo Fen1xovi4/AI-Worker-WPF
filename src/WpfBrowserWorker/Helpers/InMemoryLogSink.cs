@@ -19,6 +19,14 @@ public class InMemoryLogSink : ILogEventSink
 
     public void Emit(LogEvent logEvent)
     {
+        // Skip EF Core infrastructure noise (SQL queries, DbCommand traces, migrations)
+        if (logEvent.Properties.TryGetValue("SourceContext", out var ctx))
+        {
+            var src = ctx.ToString().Trim('"');
+            if (src.StartsWith("Microsoft.EntityFrameworkCore", StringComparison.OrdinalIgnoreCase))
+                return;
+        }
+
         var level = logEvent.Level switch
         {
             LogEventLevel.Error       => "ERR",
